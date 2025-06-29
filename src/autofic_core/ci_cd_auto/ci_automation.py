@@ -5,8 +5,8 @@ class Ci_Automate:
         self.REPO_URLS = [
             'https://github.com/inyeongjang/corner4'
         ]
-    def run_autofic(self):
-        print(f"\n[RUN] {self.repo_url}")
+    def run_autofic(self, repo_url):
+        print(f"\n[RUN] {repo_url}")
         cmd = [
             'python', '-m', 'autofic_core.cli',
             '--repo', self.repo_url,
