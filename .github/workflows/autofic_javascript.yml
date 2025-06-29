@@ -2,7 +2,7 @@ name: Autofic SAST for Selected JavaScript Repos
 
 on:
   schedule:
-    - cron: '53 15 * * *'  # 매일 KST 24:00 (UTC+9 → UTC 15:00)
+    - cron: '00 21 * * *'  # 매일 KST 24:00 (UTC+9 → UTC 15:00)
   workflow_dispatch:
 
 jobs:
