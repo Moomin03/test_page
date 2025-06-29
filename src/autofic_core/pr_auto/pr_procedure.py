@@ -7,6 +7,7 @@ import requests
 import subprocess
 from pydantic import BaseModel
 from typing import List, Optional
+import click
 
 # Pydantic 모델 정의(트리 구조임!)
 # VulnerabilityReport
@@ -35,21 +36,16 @@ class VulnerabilityReport(BaseModel):
     results: List[VulnerabilityItem] = []
 
 class PRProcedure:
-    def __init__(self, branch_name: str, base_branch: str, repo_name: str,
-                 upstream_owner: str, save_dir: str, repo_url: str, secret_discord: str,
-                 secret_slack: str, token: str, user_name: str, slack_webhook: str = None, discord_webhook: str = None):
-        self.branch_name = branch_name
+    def __init__(self, base_branch: str, repo_name: str,
+                 upstream_owner: str, save_dir: str, repo_url: str, token: str, user_name: str):
+        self.branch_name = f'WHS_VULN_DETEC_{1}'
         self.base_branch = base_branch
         self.repo_name = repo_name
         self.upstream_owner = upstream_owner
         self.save_dir = save_dir
         self.repo_url = repo_url
-        self.secret_discord = secret_discord
-        self.secret_slack = secret_slack
         self.token = token
         self.user_name = user_name
-        self.slack_webhook = slack_webhook
-        self.discord_webhook = discord_webhook
         
     def post_init(self):
         if not self.user_name:
@@ -101,8 +97,11 @@ class PRProcedure:
         subprocess.run(['git', 'commit', '-m', f"[Autofic] {len(data.get('results', []))} malicious code detected!!"], check=True)
         try:
             subprocess.run(['git', 'push', 'origin', self.branch_name], check=True)
-        except subprocess.CalledProcessError:
-            return
+            print(f"[SUCCESS] 브랜치 {self.branch_name}에 푸시 완료")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"[ERROR] 푸시 실패: {e}")
+            return False
     
     def current_main_branch(self):
         # 3. base 브랜치 확인
@@ -116,8 +115,9 @@ class PRProcedure:
             
     def generate_pr(self):
         # 4. PR 생성
+        print(f"[INFO] {self.user_name}/{self.repo_name}에 PR을 생성합니다. base branch: {self.base_branch}")
         pr_url = f"https://api.github.com/repos/{self.user_name}/{self.repo_name}/pulls"
-        pr_body = self.generate_pr_markdown(self.json_path)
+        pr_body = self.generate_markdown(self.json_path)
         data_post = {
             "title": f"[Autofic] Security Patch {datetime.datetime.now().strftime('%Y-%m-%d')}",
             "head": f"{self.user_name}:{self.branch_name}",
@@ -131,9 +131,12 @@ class PRProcedure:
         pr_resp = requests.post(pr_url, json=data_post, headers=headers)
         if pr_resp.status_code in (201, 202):
             pr_json = pr_resp.json()
+            print(f"[SUCCESS] {self.user_name}/{self.repo_name}에 PR 생성 완료! URL: {pr_json.get('html_url')}")
             time.sleep(0.05)
+            return True
         else:
-            return
+            print(f"[ERROR] PR 생성 실패: {pr_resp.status_code}\n{pr_resp.text}")
+            return False
     
     def create_pr_to_upstream(self):
         """내 fork에 PR 올린 뒤 CI 성공하면, 자동으로 upstream(원본) PR을 생성"""
