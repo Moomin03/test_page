@@ -51,7 +51,7 @@ class PRProcedure:
         self.slack_webhook = slack_webhook
         self.discord_webhook = discord_webhook
         
-    def __post_init__(self):
+    def post_init(self):
         if not self.user_name:
             raise RuntimeError
         if self.repo_url.startswith("https://github.com/"):
@@ -64,11 +64,11 @@ class PRProcedure:
         else:
             raise RuntimeError("Not a github.com URL")
     
-    def __mv_workdir__(self, save_dir: str = None):
+    def mv_workdir(self, save_dir: str = None):
         # 0. clone한 디렉토리로 이동
         os.chdir(save_dir or self.save_dir)
     
-    def __check_branch_exists__(self):
+    def check_branch_exists(self):
         # 1. 원격 브랜치 목록 조회
         branches = subprocess.check_output(['git', 'branch', '-r'], encoding='utf-8')
         # 2. WHS_VULN_DETEC_N 패턴 숫자 추출
@@ -85,7 +85,7 @@ class PRProcedure:
         # 3. 브랜치 생성
         subprocess.run(['git', 'checkout', '-b', self.branch_name], check=True)
     
-    def __change_files__(self):
+    def change_files(self):
         # 파일 생성 (임시) -> 원래는 수정된 파일(.js)가 들어가야함
         workflow_filename = 'test.txt'
         workflow_content = "Codes is Modified!!!"
@@ -104,7 +104,7 @@ class PRProcedure:
         except subprocess.CalledProcessError:
             return
     
-    def __current_main_branch__(self):
+    def current_main_branch(self):
         # 3. base 브랜치 확인
         branches = subprocess.check_output(['git', 'branch', '-r'], encoding='utf-8')
         if f'origin/main' in branches:
@@ -114,7 +114,7 @@ class PRProcedure:
         else:
             self.base_branch = branches[0].split('/')[-1]
             
-    def __generate_pr__(self):
+    def generate_pr(self):
         # 4. PR 생성
         pr_url = f"https://api.github.com/repos/{self.user_name}/{self.repo_name}/pulls"
         pr_body = self.generate_pr_markdown(self.json_path)
@@ -135,7 +135,7 @@ class PRProcedure:
         else:
             return
     
-    def __create_pr_to_upstream__(self):
+    def create_pr_to_upstream(self):
         """내 fork에 PR 올린 뒤 CI 성공하면, 자동으로 upstream(원본) PR을 생성"""
         # 1. 내 fork repo의 최신 PR 번호 찾기
         prs_url = f"https://api.github.com/repos/{self.user_name}/{self.repo_name}/pulls"
@@ -187,7 +187,7 @@ class PRProcedure:
             
         # 4. ci.yml, pr_notify.yml에 대해서 문제가 발생하지 않으면 -> 원본 레포에 PR 생성
         pr_url = f"https://api.github.com/repos/{self.upstream_owner}/{self.repo_name}/pulls"
-        pr_body = self.__generate_markdown__('../sast/before.json')
+        pr_body = self.generate_markdown('../sast/before.json')
         data_post = {
             "title": f"[Autofic] Security Patch {datetime.datetime.now().strftime('%Y-%m-%d')}",
             "head": f"{self.user_name}:{pr_branch}",
@@ -200,7 +200,7 @@ class PRProcedure:
         else:
             return
             
-    def __generate_markdown__(self, json_path: str) -> str:
+    def generate_markdown(self, json_path: str) -> str:
         with open(json_path, 'r', encoding='utf-8') as f:
             try:
                 data = VulnerabilityReport.parse_raw(f.read())

@@ -47,7 +47,7 @@ class BranchPRAutomation:
 
         # 1. 사용자 이름 확인
         try:
-            pr_procedure.__post_init__()
+            pr_procedure.post_init()
             self.result["post_init"] = True
         except Exception as e:
             self.result["error_msg"] = f"post_init: {e}"
@@ -55,7 +55,7 @@ class BranchPRAutomation:
 
         # 2. 작업 디렉토리 이동
         try:
-            pr_procedure.__mv_workdir__()
+            pr_procedure.mv_workdir()
             self.result["mv_workdir"] = True
         except Exception as e:
             self.result["error_msg"] = f"mv_workdir: {e}"
@@ -63,7 +63,7 @@ class BranchPRAutomation:
 
         # 3. 브랜치 확인/생성
         try:
-            pr_procedure.__check_branch_exists__()
+            pr_procedure.check_branch_exists()
             self.result["check_branch"] = True
         except Exception as e:
             self.result["error_msg"] = f"check_branch: {e}"
@@ -103,7 +103,7 @@ class BranchPRAutomation:
 
         # 8. 파일 변경/커밋/푸시
         try:
-            pr_procedure.__change_files__()
+            pr_procedure.change_files()
             self.result["change_files"] = True
         except Exception as e:
             self.result["error_msg"] = f"change_files: {e}"
@@ -111,7 +111,7 @@ class BranchPRAutomation:
 
         # 9. 메인 브랜치 찾기
         try:
-            pr_procedure.__current_main_branch__()
+            pr_procedure.current_main_branch()
             self.result["get_main_branch"] = True
         except Exception as e:
             self.result["error_msg"] = f"get_main_branch: {e}"
@@ -119,7 +119,7 @@ class BranchPRAutomation:
 
         # 10. PR 생성 (내 fork 기준)
         try:
-            pr_procedure.__generate_pr__()
+            pr_procedure.generate_pr()
             self.result["generate_pr"] = True
         except Exception as e:
             self.result["error_msg"] = f"generate_pr: {e}"
@@ -127,7 +127,7 @@ class BranchPRAutomation:
 
         # 11. 원본 PR 생성
         try:
-            pr_procedure.__create_pr_to_upstream__()
+            pr_procedure.create_pr_to_upstream()
             self.result["create_upstream_pr"] = True
         except Exception as e:
             self.result["error_msg"] = f"create_upstream_pr: {e}"
