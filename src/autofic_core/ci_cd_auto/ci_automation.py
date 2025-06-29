@@ -9,7 +9,7 @@ class Ci_Automate:
         print(f"\n[RUN] {repo_url}")
         cmd = [
             'python', '-m', 'autofic_core.cli',
-            '--repo', self.repo_url,
+            '--repo', repo_url,
             '--save-dir', 'downloaded_folder',
             '--sast',
             '--rule', 'p/javascript'
